@@ -55,32 +55,28 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 200000;
+const int N = 300000;
 
 struct Input {
-	int n, k;
-	vi f[N];
-	int p[N];
+	int n;
+	vi e[N];
+	int a[N];
 	
 	bool read() {
-		int m;
-		if (!(cin >> n >> m)) {
+		if (!(cin >> n)) {
 			return 0;
 		}
-		forn (i, m) {
+		forn (i, n) {
+			scanf("%d", &a[i]);
+			--a[i];
+		}
+		forn (i, n - 1) {
 			int x, y;
 			scanf("%d%d", &x, &y);
 			--x;
 			--y;
-			f[y].pb(x);
+			e[x].pb(y);
 		}
-		cin >> k;
-		forn (i, k) {
-			scanf("%d", &p[i]);
-			--p[i];
-		}
-		debug(f, f + n);
-		debug(p, p + k);
 		return 1;
 	}
 
@@ -90,52 +86,150 @@ struct Input {
 };
 
 struct Data: Input {
-	int ans_l, ans_r;
-	
+	bool ans_can;
+	int ans[N];
+	ll ans_cnt;
+
 	void write() {
-		cout << ans_l << ' ' << ans_r << endl;
+		if (!ans_can) {
+			puts("NO");
+			return;
+		}
+		puts("YES");
+		cout << ans_cnt << endl;
+		forn (i, n) {
+			if (i) {
+				printf(" ");
+			}
+			printf("%d", ans[i] + 1);
+		}
+		puts("");
 	}
 };
 
 
 namespace Main {
+	const int L = 20;
 	
 	struct Solution: Data {
-		int l[N], cnt[N];
+		int p[N];
+		// int pr[N][L];
+
+		int lvl[N];
+
+		void dfs(int v, int cur_l, int &cur_cnt) {
+			lvl[v] = cur_l++;
+			ans[v] = cur_cnt++;
+			for (int to : e[v]) {
+				dfs(to, cur_l, cur_cnt);
+			}
+		}
+
+		int ch_cnt[N];
+
+		int pos[N];
+
+		int bad_num = -1;
+		int bad_v = -1;
+
+		int b[N];
+
+		void dfs1(int v, int &cur_cnt) {
+			for (int to : e[v]) {
+				dfs1(to, cur_cnt);
+			}
+			if (cur_cnt < bad_num) {
+				b[v] = cur_cnt++;
+			}
+		}
+
+		bool dfs2(int v, int &cur_cnt) {
+			if (b[v] != -1) {
+				return 0;
+			}
+			if (lvl[v] == lvl[bad_v]) {
+				b[v] = cur_cnt++;
+				return 1;
+			}
+			for (int to : e[v]) {
+				if (dfs2(to, cur_cnt)) {
+					return 1;
+				}
+			}
+			return 1;
+		}
+
+		void dfs3(int v, int &cur_cnt) {
+			if (b[v] == -1) {
+				b[v] = cur_cnt++;
+			}
+			for (int to : e[v]) {
+				dfs3(to, cur_cnt);
+			}
+		}
 		
 		void solve() {
+			memset(p, -1, sizeof p);
 			forn (i, n) {
-				l[i] = N + 1;
-				cnt[i] = 0;
-			}
-			vi q;
-			int st = p[0];
-			int fn = p[k - 1];
-			l[fn] = 0;
-			cnt[fn] = 0;
-			q.pb(fn);
-			forn (i, sz(q)) {
-				int v = q[i];
-				for (int to : f[v]) {
-					if (umn(l[to], l[v] + 1)) {
-						cnt[to] = 0;
-						q.pb(to);
-					}
-					if (l[to] == l[v] + 1) {
-						cnt[to]++;
-					}
+				sort(all(e[i]), [&] (int x, int y) {
+					return a[x] < a[y];
+				});
+				for (int to : e[i]) {
+					p[to] = i;
 				}
 			}
-			debug(l, l + n);
-			debug(cnt, cnt + n);
-			ans_l = ans_r = 0;
-			forn (i, k - 1) {
-				if (l[p[i]] != l[p[i + 1]] + 1) {
-					ans_l++;
-					ans_r++;
-				} else if (cnt[p[i]] > 1) {
-					ans_r++;
+			debug(a, a + n);
+			debug(e, e + n);
+			int root = 0;
+			while (p[root] != -1) {
+				++root;
+			}
+			{
+				int cur_cnt = 0;
+				dfs(root, 0, cur_cnt);
+			}
+
+			forn (i, n) {
+				ch_cnt[i] = sz(e[i]);
+				pos[a[i]] = i;
+			}
+
+			debug(pos, pos + n);
+
+			ans_cnt = 0;
+			forn (i, n) {
+				int v = pos[i];
+				ans_cnt += lvl[v];
+				if (ch_cnt[v] > 0) {
+					bad_num = i;
+					bad_v = v;
+					break;
 				}
+				if (p[v] == -1) {
+					continue;
+				}
+				ch_cnt[p[v]]--;
+			}
+			debug(mt(bad_num, bad_v));
+
+			if (bad_num == -1) {
+				ans_can = 1;
+				return;
+			}
+
+			memset(b, -1, sizeof b);
+			{
+				int cur_cnt = 0;
+				dfs1(root, cur_cnt);
+				debug(b, b + n);
+				dfs2(root, cur_cnt);
+				debug(b, b + n);
+				dfs3(root, cur_cnt);
+				debug(b, b + n);
+			}
+			ans_can = 1;
+			forn (i, n) {
+				ans_can &= (b[i] == a[i]);
 			}
 		}
 		

@@ -55,13 +55,25 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 500;
+const int N = 200000;
 
 struct Input {
 	int n;
+	vi e[N];
 	
 	bool read() {
-		return !!(cin >> n);
+		if (!(cin >> n)) {
+			return 0;
+		}
+		forn (i, n - 1) {
+			int x, y;
+			scanf("%d%d", &x, &y);
+			--x;
+			--y;
+			e[x].pb(y);
+			e[y].pb(x);
+		}
+		return 1;
 	}
 
 	void init(const Input &input) {
@@ -70,13 +82,10 @@ struct Input {
 };
 
 struct Data: Input {
-	ve<pii> ans;
-
+	bool ans;
+	
 	void write() {
-		cout << sz(ans) << endl;
-		forn (i, sz(ans)) {
-			printf("%d %d\n", ans[i].fs, ans[i].sc);
-		}
+		puts(ans ? "YES" : "NO");
 	}
 };
 
@@ -84,14 +93,71 @@ struct Data: Input {
 namespace Main {
 	
 	struct Solution: Data {
+
+		void del1(int v1, int v2) {
+			forn (i, sz(e[v1])) {
+				if (e[v1][i] == v2) {
+					swap(e[v1][i], e[v1].back());
+					e[v1].pop_back();
+					return;
+				}
+			}
+			assert(false);
+		}
+
+		void del(int v1, int v2) {
+			del1(v1, v2);
+			del1(v2, v1);
+		}
+		
+		vi f;
+
+		int dfs(int k, int v, int pr, int &v1, int &v2) {
+			int cnt = 1;
+			for (int to : e[v]) {
+				if (to == pr) {
+					continue;
+				}
+				cnt += dfs(k, to, v, v1, v2);
+			}
+			if (cnt == f[k - 1]) {
+				v1 = v;
+				v2 = pr;
+			}
+			if (cnt == f[k - 2]) {
+				v2 = v;
+				v1 = pr;
+			}
+			return cnt;
+		}
+
+		bool check(int r, int k) {
+			deepen();
+			debug(mt(r, k, f[k]));
+			if (k < 2) {
+				return true;
+			}
+			int v1 = -1, v2 = -1;
+			dfs(k, r, -1, v1, v2);
+			debug(mt(v1, v2));
+			if (v1 == -1) {
+				return false;
+			}
+			del(v1, v2);
+			return check(v1, k - 1) && check(v2, k - 2);
+		}
 		
 		void solve() {
-			ans.pb(0, 0);
-			forn (i, n + 1) {
-				ans.pb(i, i + 1);
-				ans.pb(i + 1, i);
-				ans.pb(i + 1, i + 1);
+			f.pb(1);
+			f.pb(1);
+			while (f.back() < n) {
+				f.pb(f[sz(f) - 2] + f[sz(f) - 1]);
 			}
+			if (f.back() != n) {
+				ans = 0;
+				return;
+			}
+			ans = check(0, sz(f) - 1);
 		}
 		
 		void clear() {

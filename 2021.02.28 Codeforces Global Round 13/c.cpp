@@ -55,13 +55,20 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 500;
+const int N = 5000;
 
 struct Input {
 	int n;
+	int a[N];
 	
 	bool read() {
-		return !!(cin >> n);
+		if (!(cin >> n)) {
+			return 0;
+		}
+		forn (i, n) {
+			scanf("%d", &a[i]);
+		}
+		return 1;
 	}
 
 	void init(const Input &input) {
@@ -70,13 +77,10 @@ struct Input {
 };
 
 struct Data: Input {
-	ve<pii> ans;
-
+	ll ans;
+	
 	void write() {
-		cout << sz(ans) << endl;
-		forn (i, sz(ans)) {
-			printf("%d %d\n", ans[i].fs, ans[i].sc);
-		}
+		cout << ans << endl;
 	}
 };
 
@@ -84,13 +88,44 @@ struct Data: Input {
 namespace Main {
 	
 	struct Solution: Data {
+		int nx[N];
+
+		int next(int i) {
+			if (i >= n) {
+				return i;
+			}
+			if (nx[i] == i) {
+				if (a[i] == 1) {
+					nx[i] = i + 1;
+				} else {
+					return i;
+				}
+			}
+			return nx[i] = next(nx[i]);
+		}
+
+		void go(int i) {
+			if (i >= n) {
+				return;
+			}
+			go(next(i + a[i]));
+			assert(a[i] > 1);
+			a[i]--;
+		}
 		
 		void solve() {
-			ans.pb(0, 0);
-			forn (i, n + 1) {
-				ans.pb(i, i + 1);
-				ans.pb(i + 1, i);
-				ans.pb(i + 1, i + 1);
+			forn (i, n) {
+				nx[i] = i;
+			}
+			ans = 0;
+			forn (i, n) {
+				int x = max(0, i + a[i] - n);
+				ans += x;
+				a[i] -= x;
+				while (a[i] > 1) {
+					go(i);
+					ans++;
+				}
 			}
 		}
 		
@@ -110,18 +145,8 @@ int main() {
 	#ifdef SG
 		freopen((problemname + ".in").c_str(), "r", stdin);
 //		freopen((problemname + ".out").c_str(), "w", stdout);
-		while (sol.read()) {
-			sol.solve();
-			sol.write();
-			sol.clear();
-		}
-	#else
-		sol.read();
-		sol.solve();
-		sol.write();
 	#endif
 	
-	/*
 	int t;
 	cin >> t;
 	forn (i, t) {
@@ -130,7 +155,6 @@ int main() {
 		sol.write();
 		sol.clear();
 	}
-	*/
 	
 	return 0;
 }

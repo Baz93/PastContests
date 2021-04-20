@@ -55,13 +55,28 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 500;
+const int N = 100000;
+const int Q = 100000;
 
 struct Input {
-	int n;
+	int n, q;
+	int a[N];
+	int t[Q];
+	int p[Q];
 	
 	bool read() {
-		return !!(cin >> n);
+		if (!(cin >> n >> q)) {
+			return 0;
+		}
+		forn (i, n) {
+			scanf("%d", &a[i]);
+		}
+		forn (i, q) {
+			scanf("%d%d", &t[i], &p[i]);
+			--t[i];
+			--p[i];
+		}
+		return 1;
 	}
 
 	void init(const Input &input) {
@@ -70,12 +85,13 @@ struct Input {
 };
 
 struct Data: Input {
-	ve<pii> ans;
+	int ans[Q];
 
 	void write() {
-		cout << sz(ans) << endl;
-		forn (i, sz(ans)) {
-			printf("%d %d\n", ans[i].fs, ans[i].sc);
+		forn (i, q) {
+			if (t[i]) {
+				printf("%d\n", ans[i]);
+			}
 		}
 	}
 };
@@ -86,11 +102,20 @@ namespace Main {
 	struct Solution: Data {
 		
 		void solve() {
-			ans.pb(0, 0);
-			forn (i, n + 1) {
-				ans.pb(i, i + 1);
-				ans.pb(i + 1, i);
-				ans.pb(i + 1, i + 1);
+			int cnt = 0;
+			forn (i, n) {
+				cnt += a[i];
+			}
+			forn (i, q) {
+				debug(mt(i, t[i], p[i], cnt));
+				debug(a, a + n);
+				if (t[i]) {
+					ans[i] = (p[i] < cnt) ? 1 : 0;
+				} else {
+					cnt -= a[p[i]];
+					a[p[i]] ^= 1;
+					cnt += a[p[i]];
+				}
 			}
 		}
 		

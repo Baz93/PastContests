@@ -55,13 +55,19 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 500;
-
 struct Input {
 	int n;
+	string s[3];
 	
 	bool read() {
-		return !!(cin >> n);
+		if (!(cin >> n)) {
+			return 0;
+		}
+		getline(cin, s[0]);
+		forn (i, 3) {
+			getline(cin, s[i]);
+		}
+		return 1;
 	}
 
 	void init(const Input &input) {
@@ -70,13 +76,10 @@ struct Input {
 };
 
 struct Data: Input {
-	ve<pii> ans;
-
+	string ans;
+	
 	void write() {
-		cout << sz(ans) << endl;
-		forn (i, sz(ans)) {
-			printf("%d %d\n", ans[i].fs, ans[i].sc);
-		}
+		puts(ans.c_str());
 	}
 };
 
@@ -84,13 +87,51 @@ struct Data: Input {
 namespace Main {
 	
 	struct Solution: Data {
+
+		void make(const string &a, const string &b, char c) {
+			debug(mt(a, b, c));
+			ans = "";
+			int i = 0, j = 0;
+			debug(mt(i, j, ans));
+			while (i < sz(a) || j < sz(b)) {
+				bool need_a = (i < sz(a) && a[i] != c);
+				bool need_b = (j < sz(a) && b[j] != c);
+				if (need_a || need_b) {
+					ans += char(c ^ 1);
+					if (need_a) {
+						i++;
+					}
+					if (need_b) {
+						j++;
+					}
+				} else {
+					ans += c;
+					i++;
+					j++;
+				}
+				debug(mt(need_a, need_b));
+				debug(mt(i, j, ans));
+			}
+		}
+
+		int cnt[3][2];
+		int mxt[3];
 		
 		void solve() {
-			ans.pb(0, 0);
-			forn (i, n + 1) {
-				ans.pb(i, i + 1);
-				ans.pb(i + 1, i);
-				ans.pb(i + 1, i + 1);
+			forn (i, 3) {
+				cnt[i][0] = cnt[i][1] = 0;
+				forn (j, 2 * n) {
+					cnt[i][s[i][j] - '0']++;
+				}
+				mxt[i] = (cnt[i][1] > cnt[i][0]);
+			}
+			forn (i, 3) {
+				forn (j, i) {
+					if (mxt[i] == mxt[j]) {
+						make(s[i], s[j], '0' + mxt[i]);
+						return;
+					}
+				}
 			}
 		}
 		
@@ -110,18 +151,8 @@ int main() {
 	#ifdef SG
 		freopen((problemname + ".in").c_str(), "r", stdin);
 //		freopen((problemname + ".out").c_str(), "w", stdout);
-		while (sol.read()) {
-			sol.solve();
-			sol.write();
-			sol.clear();
-		}
-	#else
-		sol.read();
-		sol.solve();
-		sol.write();
 	#endif
 	
-	/*
 	int t;
 	cin >> t;
 	forn (i, t) {
@@ -130,7 +161,6 @@ int main() {
 		sol.write();
 		sol.clear();
 	}
-	*/
 	
 	return 0;
 }

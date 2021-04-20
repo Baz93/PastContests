@@ -55,13 +55,35 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 500;
+const int N = 600;
+const int M = N * N / 2;
+const int Q = N * N / 2;
+
+const ll inf = ll(1e18);
 
 struct Input {
-	int n;
+	int n, m, q;
+	int ex[M], ey[M];
+	ll ew[M];
+	int qx[Q], qy[Q];
+	ll qw[Q];
 	
 	bool read() {
-		return !!(cin >> n);
+		if (!(cin >> n >> m)) {
+			return 0;
+		}
+		forn (i, m) {
+			scanf("%d%d%" SCNd64, &ex[i], &ey[i], &ew[i]);
+			--ex[i];
+			--ey[i];
+		}
+		cin >> q;
+		forn (i, q) {
+			scanf("%d%d%" SCNd64, &qx[i], &qy[i], &qw[i]);
+			--qx[i];
+			--qy[i];
+		}
+		return 1;
 	}
 
 	void init(const Input &input) {
@@ -70,13 +92,10 @@ struct Input {
 };
 
 struct Data: Input {
-	ve<pii> ans;
+	int ans;
 
 	void write() {
-		cout << sz(ans) << endl;
-		forn (i, sz(ans)) {
-			printf("%d %d\n", ans[i].fs, ans[i].sc);
-		}
+		cout << ans << endl;
 	}
 };
 
@@ -84,13 +103,56 @@ struct Data: Input {
 namespace Main {
 	
 	struct Solution: Data {
+		ll d[N][N];
+		ll mx[N];
 		
 		void solve() {
-			ans.pb(0, 0);
-			forn (i, n + 1) {
-				ans.pb(i, i + 1);
-				ans.pb(i + 1, i);
-				ans.pb(i + 1, i + 1);
+			forn (i, n) {
+				forn (j, n) {
+					d[i][j] = inf;
+				}
+			}
+			forn (i, n) {
+				d[i][i] = 0;
+			}
+			forn (i, m) {
+				umn(d[ex[i]][ey[i]], ew[i]);
+				umn(d[ey[i]][ex[i]], ew[i]);
+			}
+			forn (k, n) {
+				forn (i, n) {
+					forn (j, n) {
+						umn(d[i][j], d[i][k] + d[k][j]);
+					}
+				}
+			}
+			forn (i, n) {
+				debug(d[i], d[i] + n);
+			}
+			ans = 0;
+			forn (v, n) {
+				forn (i, n) {
+					mx[i] = -inf;
+				}
+				forn (i, q) {
+					int x = qx[i];
+					int y = qy[i];
+					forn (t, 2) {
+						umx(mx[y], qw[i] - d[x][v]);
+						swap(x, y);
+					}
+				}
+				debug(v);
+				debug(mx, mx + n);
+				forn (i, m) {
+					if (ex[i] == v) {
+						bool good = 0;
+						forn (j, n) {
+							good |= (ew[i] + d[ey[i]][j] <= mx[j]);
+						}
+						ans += good;
+					}
+				}
 			}
 		}
 		

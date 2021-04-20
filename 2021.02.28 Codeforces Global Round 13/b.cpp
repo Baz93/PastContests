@@ -55,13 +55,21 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 500;
+const int N = 100;
 
 struct Input {
 	int n;
+	int a[N];
+	ll u, v;
 	
 	bool read() {
-		return !!(cin >> n);
+		if (!(cin >> n >> u >> v)) {
+			return 0;
+		}
+		forn (i, n) {
+			scanf("%d", &a[i]);
+		}
+		return 1;
 	}
 
 	void init(const Input &input) {
@@ -70,13 +78,10 @@ struct Input {
 };
 
 struct Data: Input {
-	ve<pii> ans;
+	ll ans;
 
 	void write() {
-		cout << sz(ans) << endl;
-		forn (i, sz(ans)) {
-			printf("%d %d\n", ans[i].fs, ans[i].sc);
-		}
+		cout << ans << endl;
 	}
 };
 
@@ -86,11 +91,20 @@ namespace Main {
 	struct Solution: Data {
 		
 		void solve() {
-			ans.pb(0, 0);
-			forn (i, n + 1) {
-				ans.pb(i, i + 1);
-				ans.pb(i + 1, i);
-				ans.pb(i + 1, i + 1);
+			bool vert = 1;
+			bool can = 0;
+			forn (i, n - 1) {
+				vert &= (a[i] == a[i + 1]);
+				can |= (abs(a[i] - a[i + 1]) > 1);
+			}
+			if (can) {
+				ans = 0;
+				return;
+			}
+			if (!vert) {
+				ans = min(u, v);
+			} else {
+				ans = min(u, v) + v;
 			}
 		}
 		
@@ -110,18 +124,8 @@ int main() {
 	#ifdef SG
 		freopen((problemname + ".in").c_str(), "r", stdin);
 //		freopen((problemname + ".out").c_str(), "w", stdout);
-		while (sol.read()) {
-			sol.solve();
-			sol.write();
-			sol.clear();
-		}
-	#else
-		sol.read();
-		sol.solve();
-		sol.write();
 	#endif
 	
-	/*
 	int t;
 	cin >> t;
 	forn (i, t) {
@@ -130,7 +134,6 @@ int main() {
 		sol.write();
 		sol.clear();
 	}
-	*/
 	
 	return 0;
 }

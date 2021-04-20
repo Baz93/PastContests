@@ -60,7 +60,6 @@ const int N = 200000;
 struct Input {
 	int n;
 	int a[N];
-
 	
 	bool read() {
 		if (!(cin >> n)) {
@@ -68,6 +67,7 @@ struct Input {
 		}
 		forn (i, n) {
 			scanf("%d", &a[i]);
+			--a[i];
 		}
 		return 1;
 	}
@@ -78,10 +78,13 @@ struct Input {
 };
 
 struct Data: Input {
-	ll ans;
-
+	ve<pii> ans;
+	
 	void write() {
-		cout << ans << endl;
+		cout << sz(ans) << endl;
+		forn (i, sz(ans)) {
+			printf("%d %d\n", ans[i].fs + 1, ans[i].sc + 1);
+		}
 	}
 };
 
@@ -89,15 +92,135 @@ struct Data: Input {
 namespace Main {
 	
 	struct Solution: Data {
-		map<int, ll> m;
+		bool u[N];
+
+		int b[N];
+
+		void add(int i, int j) {
+			debug(a, a + n);
+			debug(b, b + n);
+			debug(mt(i, j));
+			assert(i != j);
+			swap(a[i], a[j]);
+			swap(b[i], b[j]);
+			b[i] ^= 1;
+			b[j] ^= 1;
+			ans.pb(mp(i, j));
+			debug(a, a + n);
+			debug(b, b + n);
+		}
+
+		void proc3(int v1, int v2, int v3) {
+			debug(mt(v1, v2, v3));
+			assert(b[v1]);
+			assert(b[v2]);
+			assert(!b[v3]);
+			assert(a[v1] == v2);
+			assert(a[v2] == v3);
+			assert(a[v3] == v1);
+
+			add(v2, v3);
+			add(v1, v2);
+
+			assert(!b[v1]);
+			assert(!b[v2]);
+			assert(!b[v3]);
+			assert(a[v1] == v1);
+			assert(a[v2] == v2);
+			assert(a[v3] == v3);
+		}
+
+		void make2(pii c1, pii c2) {
+			debug(mt(c1, c2));
+			int v1 = c1.fs;
+			int v2 = c2.fs;
+			assert(v1 != v2);
+			add(v1, v2);
+			assert(a[v1] != v1);
+			assert(a[v1] != v2);
+			assert(a[v2] != v1);
+			assert(a[v2] != v2);
+			while (a[v1] != v2) {
+				int nx = a[v1];
+				debug(mt(v1, v2, nx));
+				add(v1, nx);
+				// v1 = nx;
+			}
+			while (a[a[v2]] != v1) {
+				int nx = a[v2];
+				add(v2, nx);
+				// v2 = nx;
+			}
+
+			int v3 = a[v2];
+
+			proc3(v1, v2, v3);
+		}
+
+		void make1(pii c) {
+			debug(c);
+			assert(c.sc > 1);
+			int v1 = c.fs;
+			int v2 = a[v1];
+			if (c.sc == 2) {
+				int v3 = 0;
+				while (v3 < n && a[v3] != v3) {
+					v3++;
+				}
+				assert(v3 < n);
+				add(v1, v3);
+				proc3(v1, v3, v2);
+				return;
+			}
+			add(v1, v2);
+			assert(a[v2] == v2);
+			assert(a[v1] != v1);
+			assert(a[v1] != v2);
+			debug(mt(v1, v2));
+			while (a[a[v1]] != v1) {
+				int nx = a[v1];
+				add(v1, nx);
+				// v1 = nx;
+			}
+
+			int v3 = a[v1];
+			add(v2, v3);
+			debug(mt(v1, v2, v3));
+			proc3(v2, v1, v3);
+		}
 		
 		void solve() {
+			memset(u, 0, sizeof u);
+			memset(b, 0, sizeof b);
+
+			debug(a, a + n);
+
+			ve<pii> c;
 			forn (i, n) {
-				m[a[i] - i] += a[i];
+				if (u[i]) {
+					continue;
+				}
+				int len = 0;
+				while (!u[i]) {
+					u[i] = 1;
+					i = a[i];
+					len++;
+				}
+				if (len > 1) {
+					c.pb(mp(i, len));
+				}
 			}
-			ans = 0;
-			for (const auto &p : m) {
-				umx(ans, p.sc);
+			debug(c);
+
+			while (sz(c) > 1) {
+				make2(c[sz(c) - 1], c[sz(c) - 2]);
+				c.pop_back();
+				c.pop_back();
+			}
+			if (sz(c) > 0) {
+				assert(sz(c) == 1);
+				make1(c[0]);
+				c.pop_back();
 			}
 		}
 		

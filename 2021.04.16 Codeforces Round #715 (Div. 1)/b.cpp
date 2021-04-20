@@ -55,13 +55,18 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 500;
+const int N = 100000;
 
 struct Input {
 	int n;
+	ll k;
 	
 	bool read() {
-		return !!(cin >> n);
+		if (!(cin >> n >> k)) {
+			return 0;
+		}
+		--k;
+		return 1;
 	}
 
 	void init(const Input &input) {
@@ -70,13 +75,21 @@ struct Input {
 };
 
 struct Data: Input {
-	ve<pii> ans;
+	bool can;
+	int ans[N];
 
 	void write() {
-		cout << sz(ans) << endl;
-		forn (i, sz(ans)) {
-			printf("%d %d\n", ans[i].fs, ans[i].sc);
+		if (!can) {
+			puts("-1");
+			return;
 		}
+		forn (i, n) {
+			if (i) {
+				printf(" ");
+			}
+			printf("%d", ans[i] + 1);
+		}
+		puts("");
 	}
 };
 
@@ -84,18 +97,29 @@ struct Data: Input {
 namespace Main {
 	
 	struct Solution: Data {
-		
+		bool need[N];
+
 		void solve() {
-			ans.pb(0, 0);
-			forn (i, n + 1) {
-				ans.pb(i, i + 1);
-				ans.pb(i + 1, i);
-				ans.pb(i + 1, i + 1);
+			ford (i, n - 1) {
+				need[i] = !(k & 1);
+				k >>= 1;
+			}
+			can = !k;
+			for (int i = 0; i < n; ) {
+				int l = i;
+				++i;
+				while (i < n && !need[i - 1]) {
+					++i;
+				}
+				int r = i;
+				forn (j, l, r) {
+					ans[j] = r + l - j - 1;
+				}
 			}
 		}
 		
 		void clear() {
-			*this = Solution();
+			// #error multitest
 		}
 	};
 }
@@ -110,18 +134,8 @@ int main() {
 	#ifdef SG
 		freopen((problemname + ".in").c_str(), "r", stdin);
 //		freopen((problemname + ".out").c_str(), "w", stdout);
-		while (sol.read()) {
-			sol.solve();
-			sol.write();
-			sol.clear();
-		}
-	#else
-		sol.read();
-		sol.solve();
-		sol.write();
 	#endif
 	
-	/*
 	int t;
 	cin >> t;
 	forn (i, t) {
@@ -130,7 +144,6 @@ int main() {
 		sol.write();
 		sol.clear();
 	}
-	*/
 	
 	return 0;
 }

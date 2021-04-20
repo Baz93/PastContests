@@ -55,13 +55,26 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 500;
+const int N = 100000;
 
 struct Input {
-	int n;
+	int n, m;
+	vi v[N];
 	
 	bool read() {
-		return !!(cin >> n);
+		if (!(cin >> n >> m)) {
+			return 0;
+		}
+		forn (i, m) {
+			int k;
+			scanf("%d", &k);
+			v[i].resize(k);
+			forn (j, k) {
+				scanf("%d", &v[i][j]);
+				--v[i][j];
+			}
+		}
+		return 1;
 	}
 
 	void init(const Input &input) {
@@ -70,13 +83,22 @@ struct Input {
 };
 
 struct Data: Input {
-	ve<pii> ans;
-
+	bool can;
+	int ans[N];
+	
 	void write() {
-		cout << sz(ans) << endl;
-		forn (i, sz(ans)) {
-			printf("%d %d\n", ans[i].fs, ans[i].sc);
+		if (!can) {
+			puts("NO");
+			return;
 		}
+		puts("YES");
+		forn (i, m) {
+			if (i) {
+				printf(" ");
+			}
+			printf("%d", ans[i] + 1);
+		}
+		puts("");
 	}
 };
 
@@ -84,18 +106,38 @@ struct Data: Input {
 namespace Main {
 	
 	struct Solution: Data {
+		int cnt[N];
 		
 		void solve() {
-			ans.pb(0, 0);
-			forn (i, n + 1) {
-				ans.pb(i, i + 1);
-				ans.pb(i + 1, i);
-				ans.pb(i + 1, i + 1);
+			forn (i, n) {
+				cnt[i] = 0;
+			}
+			forn (i, m) {
+				if (sz(v[i]) == 1) {
+					ans[i] = v[i][0];
+					cnt[ans[i]]++;
+				}
+			}
+			forn (i, m) {
+				if (sz(v[i]) == 1) {
+					continue;
+				}
+				sort(all(v[i]), [&] (int x, int y) {
+					return cnt[x] < cnt[y];
+				});
+				ans[i] = v[i][0];
+				cnt[ans[i]]++;
+			}
+			can = 1;
+			forn (i, n) {
+				can &= (cnt[i] <= (m + 1) / 2);
 			}
 		}
 		
 		void clear() {
-			*this = Solution();
+			forn (i, m) {
+				v[i].clear();
+			}
 		}
 	};
 }
@@ -110,18 +152,9 @@ int main() {
 	#ifdef SG
 		freopen((problemname + ".in").c_str(), "r", stdin);
 //		freopen((problemname + ".out").c_str(), "w", stdout);
-		while (sol.read()) {
-			sol.solve();
-			sol.write();
-			sol.clear();
-		}
-	#else
-		sol.read();
-		sol.solve();
-		sol.write();
+
 	#endif
 	
-	/*
 	int t;
 	cin >> t;
 	forn (i, t) {
@@ -130,7 +163,6 @@ int main() {
 		sol.write();
 		sol.clear();
 	}
-	*/
 	
 	return 0;
 }

@@ -55,13 +55,24 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 500;
+const int N = 300000;
 
 struct Input {
 	int n;
+	ll h[N];
+	ll b[N];
 	
 	bool read() {
-		return !!(cin >> n);
+		if (!(cin >> n)) {
+			return 0;
+		}
+		forn (i, n) {
+			scanf("%" SCNd64, &h[i]);
+		}
+		forn (i, n) {
+			scanf("%" SCNd64, &b[i]);
+		}
+		return 1;
 	}
 
 	void init(const Input &input) {
@@ -70,13 +81,10 @@ struct Input {
 };
 
 struct Data: Input {
-	ve<pii> ans;
+	ll ans;
 
 	void write() {
-		cout << sz(ans) << endl;
-		forn (i, sz(ans)) {
-			printf("%d %d\n", ans[i].fs, ans[i].sc);
-		}
+		cout << ans << endl;
 	}
 };
 
@@ -84,13 +92,114 @@ struct Data: Input {
 namespace Main {
 	
 	struct Solution: Data {
+		ll d[N];
+
+		pll calc_l(int i, int mn_i) {
+			return mp(b[mn_i], d[i] - i * b[mn_i]);
+		}
+
+		set<pll> l;
+
+		bool try_del(set<pll>::iterator it) {
+			if (it == l.begin()) {
+				return 0;
+			}
+			auto pr = it;
+			--pr;
+			auto nx = it;
+			++nx;
+			if (nx == l.end()) {
+				return 0;
+			}
+			auto check = [&]() {
+				if (it->fs == pr->fs) {
+					return it->sc > pr->sc;
+				}
+				if (it->fs == nx->fs) {
+					return it->sc > nx->sc;
+				}
+				{
+					ld x1 = pr->fs - it->fs;
+					ld y1 = pr->sc - it->sc;
+					ld x2 = nx->fs - it->fs;
+					ld y2 = nx->sc - it->sc;
+					ld s = x1 * y2 - x2 * y1;
+					if (fabsl(s) > 1e18) {
+						return s > 0;
+					}
+				}
+				{
+					ll x1 = pr->fs - it->fs;
+					ll y1 = pr->sc - it->sc;
+					ll x2 = nx->fs - it->fs;
+					ll y2 = nx->sc - it->sc;
+					ll s = x1 * y2 - x2 * y1;
+					return s > 0
+				}
+			}
+			if (check()) {
+				return 0;
+			}
+			l.erase(it);
+			return 1;
+		}
+
+		void add(const pll &a) {
+			auto p = l.insert(a);
+			if (!p.second) {
+				return;
+			}
+			auto it = p.first;
+			if (try_del(it)) {
+				return;
+			}
+			while (true) {
+				if (it == l.begin()) {
+					break;
+				}
+				auto pr = it;
+				--pr;
+				if (!try_del(pr)) {
+					break;
+				}
+			}
+			while (true) {
+				auto nx = it;
+				++nx;
+				if (it == l.end()) {
+					break;
+				}
+				if (!try_del(pr)) {
+					break;
+				}
+			}
+		}
+
+		ll calc(ll i) {
+			auto it = l.begin();
+			ll val = it->fs * i + it->sc;
+			while (true) {
+				auto nx = it;
+				nx++;
+				if (nx = l.end()) {
+					break;
+				}
+				ll next_val = nx->fs * i + nx->sc;
+				if (next_val <= val) {
+					break;
+				}
+				val = next_val;
+				it = nx;
+			}
+			return val;
+		}
 		
 		void solve() {
-			ans.pb(0, 0);
-			forn (i, n + 1) {
-				ans.pb(i, i + 1);
-				ans.pb(i + 1, i);
-				ans.pb(i + 1, i + 1);
+			d[0] = 0;
+			vi q;
+			ve<pll> l;
+			forn (i, n) {
+				
 			}
 		}
 		

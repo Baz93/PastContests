@@ -55,82 +55,87 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 500;
-
-struct Input {
+void solve() {
 	int n;
-	
-	bool read() {
-		return !!(cin >> n);
-	}
-
-	void init(const Input &input) {
-		*this = input;
-	}
-};
-
-struct Data: Input {
-	ve<pii> ans;
-
-	void write() {
-		cout << sz(ans) << endl;
-		forn (i, sz(ans)) {
-			printf("%d %d\n", ans[i].fs, ans[i].sc);
-		}
-	}
-};
-
-
-namespace Main {
-	
-	struct Solution: Data {
-		
-		void solve() {
-			ans.pb(0, 0);
-			forn (i, n + 1) {
-				ans.pb(i, i + 1);
-				ans.pb(i + 1, i);
-				ans.pb(i + 1, i + 1);
+	cin >> n;
+	vi ans;
+	int k = 1;
+	while (k < n) {
+		printf("? %d %d\n", k, 1);
+		forn (i, k) {
+			if (i) {
+				printf(" ");
 			}
+			printf("%d", i + 1);
 		}
-		
-		void clear() {
-			*this = Solution();
+		puts("");
+		printf("%d\n", k + 1);
+		fflush(stdout);
+		int res;
+		scanf("%d", &res);
+		if (res) {
+			break;
 		}
-	};
+		k++;
+	}
+	assert(k < n);
+
+	debug(k);
+
+	int lb = 0, rb = k;
+	while (lb + 1 < rb) {
+		int md = (lb + rb) / 2;
+		printf("? %d %d\n", md - lb, 1);
+		forn (i, lb, md) {
+			if (i != lb) {
+				printf(" ");
+			}
+			printf("%d", i + 1);
+		}
+		puts("");
+		printf("%d\n", k + 1);
+		fflush(stdout);
+		int res;
+		scanf("%d", &res);
+		if (res) {
+			rb = md;
+		} else {
+			lb = md;
+		}
+	}
+
+	debug(lb);
+
+	forn (i, k) {
+		if (i != lb) {
+			ans.pb(i);
+		}
+	}
+	forn (i, k + 1, n) {
+		printf("? 1 1\n");
+		printf("%d\n", k + 1);
+		printf("%d\n", i + 1);
+		fflush(stdout);
+		int res;
+		scanf("%d", &res);
+		if (!res) {
+			ans.pb(i);
+		}
+	}
+	printf("! %d", sz(ans));
+	forn (i, sz(ans)) {
+		printf(" %d", ans[i] + 1);
+	}
+	puts("");
+	fflush(stdout);
 }
 
-
-Main::Solution sol;
-
 int main() {
-	cout.setf(ios::showpoint | ios::fixed);
-	cout.precision(20);
-
-	#ifdef SG
-		freopen((problemname + ".in").c_str(), "r", stdin);
-//		freopen((problemname + ".out").c_str(), "w", stdout);
-		while (sol.read()) {
-			sol.solve();
-			sol.write();
-			sol.clear();
-		}
-	#else
-		sol.read();
-		sol.solve();
-		sol.write();
-	#endif
-	
-	/*
 	int t;
 	cin >> t;
 	forn (i, t) {
-		sol.read();
-		sol.solve();
-		sol.write();
-		sol.clear();
+		solve();
 	}
-	*/
 	
 	return 0;
 }

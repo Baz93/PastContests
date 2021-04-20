@@ -55,13 +55,34 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 500;
+typedef pll pt;
+#define x first
+#define y second
+
+pt operator-(const pt &a, const pt &b) {
+	return pt(a.x - b.x, a.y - b.y);
+}
+
+ll operator%(const pt &a, const pt &b) {
+	return a.x * b.y - a.y * b.x;
+}
+
+const int N = 2000;
 
 struct Input {
 	int n;
+	pt a[N];
+	int q[N];
 	
 	bool read() {
-		return !!(cin >> n);
+		if (!(cin >> n)) {
+			return 0;
+		}
+		forn (i, n) {
+			scanf("%" SCNd64 "%" SCNd64 "%d", &a[i].x, &a[i].y, &q[i]);
+			--q[i];
+		}
+		return 1;
 	}
 
 	void init(const Input &input) {
@@ -71,11 +92,11 @@ struct Input {
 
 struct Data: Input {
 	ve<pii> ans;
-
+	
 	void write() {
 		cout << sz(ans) << endl;
-		forn (i, sz(ans)) {
-			printf("%d %d\n", ans[i].fs, ans[i].sc);
+		for (const pii &p : ans) {
+			printf("%d %d\n", p.fs + 1, p.sc + 1);
 		}
 	}
 };
@@ -84,13 +105,69 @@ struct Data: Input {
 namespace Main {
 	
 	struct Solution: Data {
+		int col_cnt = 0;
+		int col[N];
+		bool u[N];
+
+		void add(int i, int j) {
+			ans.pb(mp(i, j));
+			swap(q[i], q[j]);
+		}
 		
 		void solve() {
-			ans.pb(0, 0);
-			forn (i, n + 1) {
-				ans.pb(i, i + 1);
-				ans.pb(i + 1, i);
-				ans.pb(i + 1, i + 1);
+			vi ord;
+			forn (i, n) {
+				if (q[i] != i) {
+					ord.pb(i);
+				}
+			}
+			if (!sz(ord)) {
+				return;
+			}
+			sort(all(ord), [&](int i, int j) {
+				return a[i] > a[j];
+			});
+			int mni = ord.back();
+			debug(mni);
+			ord.pop_back();
+			pt o = a[mni];
+			forn (i, n) {
+				a[i] = a[i] - o;
+			}
+			sort(all(ord), [&](int i, int j) {
+				return (a[i] % a[j]) > 0;
+			});
+			debug(ord);
+			memset(col, -1, sizeof col);
+			forn (i, n) {
+				if (col[i] == -1) {
+					int cur_col = col_cnt++;
+					while (col[i] == -1) {
+						col[i] = cur_col;
+						i = q[i];
+					}
+				}
+			}
+			debug(col, col + n);
+			memset(u, 0, sizeof u);
+			u[col[ord[0]]] = 1;
+			forn (i, sz(ord) - 1) {
+				if (!u[col[ord[i + 1]]]) {
+					u[col[ord[i + 1]]] = 1;
+					add(ord[i], ord[i + 1]);
+				}
+			}
+			debug(ans);
+			debug(q, q + n);
+			vi v;
+			for (int i = q[mni]; i != mni; i = q[i]) {
+				v.pb(i);
+			}
+			for (int i : v) {
+				add(mni, i);
+			}
+			forn (i, n) {
+				assert(q[i] == i);
 			}
 		}
 		
