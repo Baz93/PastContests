@@ -55,29 +55,9 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 100000;
-const int M = 100000;
-
 struct Input {
-	int n;
-	ll a[N], b[N];
-	int m;
-	int l[M], r[M];
 	
 	bool read() {
-		if (!(cin >> n >> m)) {
-			return 0;
-		}
-		forn (i, n) {
-			scanf("%" SCNd64, &a[i]);
-		}
-		forn (i, n) {
-			scanf("%" SCNd64, &b[i]);
-		}
-		forn (i, m) {
-			scanf("%d%d", &l[i], &r[i]);
-			--l[i];
-		}
 		return 1;
 	}
 
@@ -87,64 +67,24 @@ struct Input {
 };
 
 struct Data: Input {
-	ll ans[M];
 	
 	void write() {
-		forn (i, m) {
-			printf("%" PRId64 "\n", ans[i]);
-		}
+		
 	}
 };
 
 
 namespace Main {
-	const int L = 20;
 	
 	struct Solution: Data {
-		ll s[N + 1];
-		ll mn[L][N + 1], mx[L][N + 1];
 		
 		void solve() {
-			s[0] = 0;
-			forn (i, n) {
-				s[i + 1] = s[i] + b[i] - a[i];
-			}
-			debug(s, s + n + 1);
-			forn (i, n + 1) {
-				mx[0][i] = s[i];
-				mn[0][i] = s[i];
-			}
-			forn (t, L - 1) {
-				forn (i, n + 2 - (2 << t)) {
-					mn[t + 1][i] = min(mn[t][i], mn[t][i + (1 << t)]);
-					mx[t + 1][i] = max(mx[t][i], mx[t][i + (1 << t)]);
-				}
-			}
-			forn (t, L) {
-				if ((1 << t) > n + 1) {
-					continue;
-				}
-				debug(mn[t], mn[t] + n + 2 - (1 << t));
-				debug(mx[t], mx[t] + n + 2 - (1 << t));
-			}
-			forn (i, m) {
-				int t = 0;
-				while ((2 << t) <= (r[i] - l[i] + 1)) {
-					t++;
-				}
-				ll cmn = min(mn[t][l[i]], mn[t][r[i] + 1 - (1 << t)]);
-				ll cmx = max(mx[t][l[i]], mx[t][r[i] + 1 - (1 << t)]);
-				debug(mt(i, l[i], r[i], s[l[i]], s[r[i]], cmn, cmx));
-				if (s[l[i]] != s[r[i]] || cmn < s[l[i]]) {
-					ans[i] = -1;
-					continue;
-				}
-				ans[i] = cmx - s[l[i]];
-			}
+			
 		}
 		
 		void clear() {
 			*this = Solution();
+			#error multitest
 		}
 	};
 }

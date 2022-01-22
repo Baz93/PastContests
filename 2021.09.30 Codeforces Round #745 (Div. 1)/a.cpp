@@ -55,28 +55,18 @@ template<typename T> inline auto sqr (T x) -> decltype(x * x) {return x * x;}
 template<typename T1, typename T2> inline bool umx (T1& a, T2 b) {if (a < b) {a = b; return 1;} return 0;}
 template<typename T1, typename T2> inline bool umn (T1& a, T2 b) {if (b < a) {a = b; return 1;} return 0;}
 
-const int N = 100000;
-const int M = 100000;
+const int N = 400;
 
 struct Input {
-	int n;
-	ll a[N], b[N];
-	int m;
-	int l[M], r[M];
+	int n, m;
+	string s[N];
 	
 	bool read() {
 		if (!(cin >> n >> m)) {
 			return 0;
 		}
 		forn (i, n) {
-			scanf("%" SCNd64, &a[i]);
-		}
-		forn (i, n) {
-			scanf("%" SCNd64, &b[i]);
-		}
-		forn (i, m) {
-			scanf("%d%d", &l[i], &r[i]);
-			--l[i];
+			cin >> s[i];
 		}
 		return 1;
 	}
@@ -87,59 +77,61 @@ struct Input {
 };
 
 struct Data: Input {
-	ll ans[M];
-	
+	int ans;
+
 	void write() {
-		forn (i, m) {
-			printf("%" PRId64 "\n", ans[i]);
-		}
+		cout << ans << endl;
 	}
 };
 
 
 namespace Main {
-	const int L = 20;
 	
 	struct Solution: Data {
-		ll s[N + 1];
-		ll mn[L][N + 1], mx[L][N + 1];
+		int a[N][N];
+		int si[N + 1][N];
+		int sj[N][N + 1];
+		int sij[N + 1][N + 1];
 		
 		void solve() {
-			s[0] = 0;
+			ans = 16;
+			forn (j, m) {
+				si[0][j] = 0;
+			}
 			forn (i, n) {
-				s[i + 1] = s[i] + b[i] - a[i];
+				sj[i][0] = 0;
 			}
-			debug(s, s + n + 1);
+			forn (j, m + 1) {
+				sij[0][j] = 0;
+			}
 			forn (i, n + 1) {
-				mx[0][i] = s[i];
-				mn[0][i] = s[i];
+				sij[i][0] = 0;
 			}
-			forn (t, L - 1) {
-				forn (i, n + 2 - (2 << t)) {
-					mn[t + 1][i] = min(mn[t][i], mn[t][i + (1 << t)]);
-					mx[t + 1][i] = max(mx[t][i], mx[t][i + (1 << t)]);
+			forn (i, n) {
+				forn (j, m) {
+					a[i][j] = (s[i][j] == '1');
+					si[i + 1][j] = si[i][j] + a[i][j];
+					sj[i][j + 1] = sj[i][j] + a[i][j];
+					sij[i + 1][j + 1] = sij[i + 1][j] + si[i + 1][j];
 				}
 			}
-			forn (t, L) {
-				if ((1 << t) > n + 1) {
-					continue;
+			forn (il, n + 1) {
+				forn (jl, m + 1) {
+					forn (ir, il + 5, n + 1) {
+						forn (jr, jl + 4, m + 1) {
+							int su = (jr - jl - 2) - (sj[il][jr - 1] - sj[il][jl + 1]);
+							int sd = (jr - jl - 2) - (sj[ir - 1][jr - 1] - sj[ir - 1][jl + 1]);
+							int sl = (ir - il - 2) - (si[ir - 1][jl] - si[il + 1][jl]);
+							int sr = (ir - il - 2) - (si[ir - 1][jr - 1] - si[il + 1][jr - 1]);
+							int sc = sij[ir - 1][jr - 1] - sij[il + 1][jr - 1] - sij[ir - 1][jl + 1] + sij[il + 1][jl + 1];
+							debug(mt(il, jl, ir, jr, su, sl, sr, sd, sc));
+							if (su + sl + sc >= ans) {
+								break;
+							}
+							umn(ans, su + sl + sr + sd + sc);
+						}
+					} 
 				}
-				debug(mn[t], mn[t] + n + 2 - (1 << t));
-				debug(mx[t], mx[t] + n + 2 - (1 << t));
-			}
-			forn (i, m) {
-				int t = 0;
-				while ((2 << t) <= (r[i] - l[i] + 1)) {
-					t++;
-				}
-				ll cmn = min(mn[t][l[i]], mn[t][r[i] + 1 - (1 << t)]);
-				ll cmx = max(mx[t][l[i]], mx[t][r[i] + 1 - (1 << t)]);
-				debug(mt(i, l[i], r[i], s[l[i]], s[r[i]], cmn, cmx));
-				if (s[l[i]] != s[r[i]] || cmn < s[l[i]]) {
-					ans[i] = -1;
-					continue;
-				}
-				ans[i] = cmx - s[l[i]];
 			}
 		}
 		
@@ -159,18 +151,8 @@ int main() {
 	#ifdef SG
 		freopen((problemname + ".in").c_str(), "r", stdin);
 //		freopen((problemname + ".out").c_str(), "w", stdout);
-		while (sol.read()) {
-			sol.solve();
-			sol.write();
-			sol.clear();
-		}
-	#else
-		sol.read();
-		sol.solve();
-		sol.write();
 	#endif
 	
-	/*
 	int t;
 	cin >> t;
 	forn (i, t) {
@@ -179,7 +161,6 @@ int main() {
 		sol.write();
 		sol.clear();
 	}
-	*/
 	
 	return 0;
 }
